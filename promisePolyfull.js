@@ -4,33 +4,74 @@
  * @param exec - executor
  */
 function PromisePolyfill(exec) {
-  let onResolve, onReject;
+  let onResolve,
+    onReject,
+    isFullfilled = false,
+    isRejected = false,
+    isCalled = false,
+    value;
 
-  function resolve(value) {
-    onResolve(value)
+  function resolve(v) {
+    isFullfilled = true;
+    value = v;
+
+    if (typeof onResolve === 'function') {
+      onResolve(v);
+      isCalled = true;
+    }
   }
 
-  function reject(value) {
-    onReject(value)
+  function reject(v) {
+    isRejected = true;
+    value = v;
+
+    if (typeof onResolve === 'function') {
+      onReject(v);
+      isCalled = true;
+    }
   }
 
   this.then = function (cb) {
     onResolve = cb;
+
+    if (typeof onResolve === 'function') {
+      onResolve(value);
+      isCalled = true;
+    }
     return this;
   };
 
   this.catch = function (cb) {
-    onReject = cb
+    onReject = cb;
+
+    if (typeof onReject === 'function') {
+      onReject(value);
+      isCalled = true;
+    }
     return this;
   };
 
-  exec(resolve, reject);
+  try {
+    exec(resolve, reject);
+  } catch (err) {
+    reject(err);
+  }
 }
 
-const promise = new PromisePolyfill((resolve, reject) => {
+const promise1 = new PromisePolyfill((resolve, reject) => {
   setTimeout(() => {
     resolve(2);
   }, 1000);
 });
 
-promise.then((res) => console.log("result is:", res)).catch((e) => console.log(e));
+const promise2 = new PromisePolyfill((resolve, reject) => {
+  reject('Error Occured');
+});
+
+promise1
+  .then((res) => console.log('result is:', res))
+  .catch((e) => console.log('Error: ',e));
+
+promise2
+  .then((res) => console.log('result is:', res))
+  .catch((e) => console.log(e));
