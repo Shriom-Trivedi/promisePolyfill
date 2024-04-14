@@ -58,6 +58,18 @@ function PromisePolyfill(exec) {
   }
 }
 
+PromisePolyfill.resolve = (v) => {
+  return new PromisePolyfill(function (resolve, reject) {
+    resolve(v);
+  });
+};
+
+PromisePolyfill.reject = (v) => {
+  return new PromisePolyfill(function (resolve, reject) {
+    reject(v);
+  });
+};
+
 const promise1 = new PromisePolyfill((resolve, reject) => {
   setTimeout(() => {
     resolve(2);
@@ -70,7 +82,7 @@ const promise2 = new PromisePolyfill((resolve, reject) => {
 
 promise1
   .then((res) => console.log('result is:', res))
-  .catch((e) => console.log('Error: ',e));
+  .catch((e) => console.log('Error: ', e));
 
 promise2
   .then((res) => console.log('result is:', res))
